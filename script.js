@@ -77,7 +77,6 @@ function getChatMembers(){
     for(var i=0; i<data.length; i++){
         if(data[i].action_type == "ma-type:log-message"){
             if(data[i].log_message_data.message_type == "change_thread_nickname"){
-                console.log(data[i]);
                 if(chatMembers[data[i].log_message_data.untypedData.participant_id] != undefined) continue;
                 chatMembers[data[i].log_message_data.untypedData.participant_id] = data[i].log_message_data.untypedData.nickname;
             }
@@ -226,21 +225,26 @@ function messageAuthorShare(){
         } else authorData[data[i].author] = 1;
     }
 
-    for(var key in authorData){
-        if(authorData.hasOwnProperty(key)){
-            chartData.push(authorData[key]);
-            key = key.substr(5);
-            chartLabels.push(chatMembers[key] != undefined ? chatMembers[key] : key);
+    var keys = [];
+    for(var key in authorData) if(authorData.hasOwnProperty(key)) keys.push(key);
+
+    for(var i=0; i<keys.length; i++){
+        for(var j=0; j<keys.length-1; j++){
+            if(authorData[keys[j]] < authorData[keys[j+1]]){
+                keys[j] = [keys[j+1], keys[j+1]=keys[j]][0];
+            }
         }
     }
 
-    console.log(chartData, chartLabels);
+    for(var i=0; i<keys.length; i++){
+        chartData.push(authorData[keys[i]]);
+        keys[i] = keys[i].substr(5);
+        chartLabels.push(chatMembers[keys[i]] != undefined ? chatMembers[keys[i]] : keys[i]);
+    }
 
     var config = {
-        // The type of chart we want to create
         type: 'pie',
 
-        // The data for our dataset
         data: {
             datasets: [{
                 label: "Message author share",
