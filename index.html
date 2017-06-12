@@ -1,0 +1,27 @@
+<!DOCTYPE HTML>
+
+<html>
+    <head>
+    </head>
+        <title>Chat visualizer</title>
+
+        <script src="node_modules\moment\moment.js"></script>
+        <script src="node_modules\chart.js\dist\Chart.js"></script>
+        <script src="node_modules\jquery\dist\jquery.js"></script>
+        <script type="text/javascript" src="script.js"></script>
+    <body>
+        <p>Ayy kek</p>
+
+        <canvas id="line_chart"></canvas>
+        <canvas id="pie_chart"></canvas>
+
+        <button onclick="JavaScript:absoluteChatActivity()">Absolute</button>
+        <button onclick="JavaScript:relativeChatActivity()">Relative</button>
+        <button onclick="JavaScript:messageAuthorShare()">Author share</button>
+
+        <form action="JavaScript:startUpload()">
+            <input type="file" name="data" accept="text/json" id="dataUpload">
+            <input type="submit">
+        </form>
+    </body>
+</html>
