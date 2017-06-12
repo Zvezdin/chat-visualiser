@@ -5,6 +5,7 @@
   "main": "\u001b[C\u001b[D\u001b[Cchart_downloader.js",
   "dependencies": {
     "chart.js": "^2.6.0",
+    "jquery": "^3.2.1",
     "moment": "^2.18.1"
   },
   "devDependencies": {},
