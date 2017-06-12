@@ -264,3 +264,66 @@ function messageAuthorShare(){
     hideAll();
     $('#pie_chart').show();
 }
+
+var pieSlices = 10;
+
+function mostCommonMessages(){
+
+    var chartLabels = [];
+
+    var chartData = [];
+
+    var queueData = [];
+
+    var messageCount = {};
+
+    for(var i=0; i<data.length; i++){
+        if(data[i].body != undefined && data[i].body != ""){
+            if(messageCount[data[i].body] == undefined) messageCount[data[i].body] = 1;
+            else messageCount[data[i].body]++;
+        }
+    }
+
+    for(var k in messageCount){
+        if(messageCount.hasOwnProperty(k)){
+            queueData.push({text: k, count: messageCount[k]});
+        }
+    }
+
+    var queueComparator = function (a,b){
+        if(a.count > b.count) return -1;
+        else if(a.count < b.count) return 1
+        return 0;
+    }
+
+    queue = new PriorityQueue({comparator: queueComparator, initialValues: queueData});
+
+    for(var i=0; i<pieSlices && i<queue.length; i++){
+        chartData.push(queue.peek().count);
+        chartLabels.push(queue.dequeue().text);
+    }
+
+    console.log(chartData, chartLabels);
+
+    var config = {
+        type: 'pie',
+
+        data: {
+            datasets: [{
+                label: pieSlices+" most common chat messages",
+                backgroundColor: palette('tol-rainbow', chartData.length).map(function(hex) {
+                    return '#' + hex;
+                }),
+                borderColor: 'rgb(255, 255, 255)',
+                data: chartData,
+            }],
+
+            labels: chartLabels,
+        },
+    };
+
+    updateChart(config, pieChart);
+
+    hideAll();
+    $('#pie_chart').show();
+}

@@ -6,6 +6,7 @@
   "dependencies": {
     "chart.js": "^2.6.0",
     "jquery": "^3.2.1",
+    "js-priority-queue": "^0.1.5",
     "moment": "^2.18.1"
   },
   "devDependencies": {},
