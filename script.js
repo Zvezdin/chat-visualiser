@@ -30,7 +30,6 @@ window.onload = function(){
         }
     });
 
-
     $('#pie_chart').hide(); 
     $('#line_chart').hide();
 };
@@ -245,8 +244,10 @@ function messageAuthorShare(){
         data: {
             datasets: [{
                 label: "Message author share",
-                backgroundColor: ['rgb(255, 50, 50)', 'rgb(50, 255, 50)', 'rgb(50, 50, 255)', 'rgb(128, 128, 50)', 'rgb(50, 128, 128)'],
-                borderColor: 'rgb(99, 99, 255)',
+                backgroundColor: palette('tol-rainbow', chartData.length).map(function(hex) {
+                    return '#' + hex;
+                }),
+                borderColor: 'rgb(255, 255, 255)',
                 data: chartData,
             }],
 
