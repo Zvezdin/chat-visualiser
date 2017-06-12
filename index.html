@@ -13,19 +13,24 @@
         <script type="text/javascript" src="script.js"></script>
         <link rel="stylesheet" type="text/css" href="style.css">
     <body>
-        <p>Ayy kek</p>
+        <p class="heading">Chat downloader</p>
 
         <canvas id="line_chart"></canvas>
         <canvas id="pie_chart"></canvas>
 
-        <button onclick="JavaScript:absoluteChatActivity()">Absolute</button>
-        <button onclick="JavaScript:relativeChatActivity()">Relative</button>
-        <button onclick="JavaScript:messageAuthorShare()">Author share</button>
-        <button onclick="JavaScript:mostCommonMessages()">Most common messages</button>
+        <div class="buttonWrapper">
+            <button class="chartButton" onclick="JavaScript:absoluteChatActivity()">Absolute</button>
+            <button class="chartButton" onclick="JavaScript:relativeChatActivity()">Relative</button>
+            <button class="chartButton" onclick="JavaScript:messageAuthorShare()">Author share</button>
+            <button class="chartButton" onclick="JavaScript:mostCommonMessages()">Most common messages</button>
+            <button class="chartButton" onclick="JavaScript:activeHours()">Active hours</button>
+        </div>
 
-        <form action="JavaScript:startUpload()">
-            <input type="file" name="data" accept="text/json" id="dataUpload">
-            <input type="submit">
-        </form>
+        <div class="fileContainer">
+            <form class="fileUpload" action="JavaScript:startUpload()">
+                <input class="fileSelect" type="file" name="data" accept="text/json" id="dataUpload">
+                <input class="fileSubmit" type="submit">
+            </form>
+        </div>
     </body>
 </html>

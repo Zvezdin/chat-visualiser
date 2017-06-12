@@ -25,6 +25,8 @@ window.onload = function(){
             scales: {
                 xAxes: [{
                     type: 'time',
+                    time: {
+                    }
                 }],
             }
         }
@@ -194,11 +196,6 @@ function relativeChatActivity(){
             scales: {
                 xAxes: [{
                     type: 'time',
-                    time: {
-                        displayFormats: {
-                            'day': 'MMM DD'
-                        }
-                    }
                 }],
             }
         }
@@ -326,4 +323,60 @@ function mostCommonMessages(){
 
     hideAll();
     $('#pie_chart').show();
+}
+
+var activeHoursPoints = 24;
+function activeHours(){
+    var chartData = new Array(activeHoursPoints);
+
+    for(var i=0; i<chartData.length; i++){
+        chartData[i] = {};
+        chartData[i].x = (86400000 / activeHoursPoints) * i  //+ (86400000 - 2*(1000*60*60));
+        chartData[i].y = 0;
+    }
+
+    
+    for(var i=0; i<data.length; i++){
+        var hour = Math.floor( (data[i].timestamp % 86400000) / (1000*60*60) );
+        chartData[hour].y++;
+    }
+
+    console.log(chartData);
+
+    var config = {
+        // The type of chart we want to create
+        type: 'line',
+
+        // The data for our dataset
+        data: {
+            datasets: [{
+                label: "Active hours",
+                backgroundColor: 'rgb(255, 99, 132)',
+                borderColor: 'rgb(99, 99, 255)',
+                data: chartData,
+            }]
+        },
+
+        // Configuration options go here
+        options: {
+            scales: {
+                xAxes: [{
+                    type: 'time',
+                    time: {
+                        unit: 'hour',
+
+                        displayFormats: {
+                            month: '',
+                            day: '',
+                        }
+                    }
+                }],
+            }
+        }
+    };
+
+    updateChart(config, lineChart);
+
+    hideAll();
+    $('#line_chart').show();
 }
