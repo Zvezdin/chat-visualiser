@@ -276,8 +276,8 @@ function mostCommonMessages(){
 
     for(var i=0; i<data.length; i++){
         if(data[i].body != undefined && data[i].body != ""){
-            if(messageCount[data[i].body] == undefined) messageCount[data[i].body] = 1;
-            else messageCount[data[i].body]++;
+            if(messageCount[data[i].body.toLowerCase()] == undefined) messageCount[data[i].body.toLowerCase()] = 1;
+            else messageCount[data[i].body.toLowerCase()]++;
         }
     }
 
