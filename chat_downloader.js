@@ -2,7 +2,7 @@ var querystring = require('querystring');
 var http = require('https');
 var fs = require("fs");
 
-var authenticaionData = {};
+var authenticationData = {};
 
 var debug = false;
 
@@ -10,7 +10,7 @@ var getMessages = function(thread_type, thread_id, offset, startTime, endTime, l
 
     var dataObject = {
         '__a':'1',
-        'fb_dtsg': authenticaionData.fb_dtsg,
+        'fb_dtsg': authenticationData.fb_dtsg,
     };
 
     dataObject['messages['+thread_type+']['+thread_id+'][timestamp]'] = startTime;
@@ -33,7 +33,7 @@ var getMessages = function(thread_type, thread_id, offset, startTime, endTime, l
             'accept-language': 'en-US,en;q=0.8',
             'Content-Type': 'application/x-www-form-urlencoded',
             'Content-Length': Buffer.byteLength(data),
-            'Cookie': authenticaionData.cookie,
+            'Cookie': authenticationData.cookie,
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.86 Safari/537.36',
         },
     };
@@ -90,7 +90,14 @@ var saveAllMessages = function(filename, thread_type, thread_id, startTime, endT
 
         if(actions[actions.length-1].timestamp < endTime || typeof response.payload.end_of_history != "undefined"){
 
-            fs.writeFile(filename, JSON.stringify(actions), function(err){
+            //save the user ID as well
+            var user = authenticationData.cookie.substr(authenticationData.cookie.indexOf("c_user") + 7, 15);
+
+            var data = {'actions': actions, 'user': user};
+
+            console.log("Saving the data as "+data);
+
+            fs.writeFile(filename, JSON.stringify(data), function(err){
                 if(err != undefined) console.error(err);
 
                 console.log("Finished saving "+filename+". Stats: "+actions.length+" chat messages in series of "+limit+" for "+(new Date().getTime() - startTime)+" ms");
@@ -149,9 +156,9 @@ for(i=2; i<process.argv.length; i++){
 
 if(filename == undefined) filename = "downloaded_data/history_"+type+"_"+id+".json";
 
-authenticaionData = JSON.parse(fs.readFileSync('data.json'));
+authenticationData = JSON.parse(fs.readFileSync('data.json'));
 
-if(authenticaionData.cookie == undefined || authenticaionData.fb_dtsg == undefined){
+if(authenticationData.cookie == undefined || authenticationData.fb_dtsg == undefined){
     console.error("Error: No authentication data! Please provide your cookie and fb_dtsg in data.json (see example_data.json for example)");
     execute = false;
 }
