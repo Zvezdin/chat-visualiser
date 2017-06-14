@@ -1,5 +1,7 @@
 var data;
 
+var user;
+
 var chatMembers= {};
 
 var pieChart;
@@ -34,18 +36,39 @@ window.onload = function(){
 
     $('#pie_chart').hide(); 
     $('#line_chart').hide();
+
+    $(".chat").scroll(function(){
+        if($(".chat").scrollTop() == 0){
+            console.log("Loading more messages upwards");
+            showChat(undefined, loadedChatEnd+1, 10);
+        } else if($(".chat").scrollTop() == $(".chat").prop("scrollHeight") - $(".chat").height()){
+            console.log("Loading more messages downwards");
+
+            var oldScroll = $(".chat").scrollTop();
+
+            showChat(undefined, loadedChatStart-1, -10);
+
+            $(".chat").scrollTop(oldScroll);
+        }
+    });
+
+    var fileString = window.localStorage.getItem("file");
+
+    if(fileString != undefined){
+        parseData(fileString);
+    }
 };
 
 function startUpload(){
 
     var files = document.getElementById("dataUpload");
 
+    var file;
+
     if(files == undefined || files.files.length != 1){
         console.error("Not selected a file!");
         return;
-    }
-
-    var file = files.files[0];
+    } else file = files.files[0];
 
     console.log(file);
 
@@ -55,10 +78,18 @@ function startUpload(){
 }
 
 function onUploadComplete(text){
-    console.log(text);
-    data = JSON.parse(text.target.result);
 
-    console.log(data);
+    window.localStorage.setItem("file", text.target.result);
+
+    parseData(text.target.result);
+}
+
+function parseData(text){
+    var obj = JSON.parse(text);
+    data = obj.actions;
+    user = obj.user;
+
+    console.log(data, user);
 
     onDataParsed();
 }
@@ -233,10 +264,10 @@ function messageAuthorShare(){
         }
     }
 
-    for(var i=0; i<keys.length; i++){
+    for(var i=keys.length-1; i>=0; i--){
         chartData.push(authorData[keys[i]]);
         keys[i] = keys[i].substr(5);
-        chartLabels.push(chatMembers[keys[i]] != undefined ? chatMembers[keys[i]] : keys[i]);
+        chartLabels.push(chatMembers[keys[i]] != undefined ? chatMembers[keys[i]] : (keys[i] == user ? "You ("+keys[i]+")" : keys[i]));
     }
 
     var config = {
@@ -392,9 +423,53 @@ function showChat(timestamp, index, amount){
     }
 
     if(index!= undefined && index>=0 && index < data.length){
-        for(var i=index; i<index+amount && i<data.length; i++){
-            console.log("Appending with index "+i+ " and timestamp "+data[i].timestamp+" which is "+new Date(data[i].timestamp));
-            $("ul").append("<li>" + data[i].body + "</li>") ;
+        var startMessage = index, endMessage = index + amount;
+
+        var messagesToAppend = [], messagesToPrepend = [];
+
+        if(startMessage > endMessage){
+            startMessage = [endMessage, endMessage=startMessage][0]; //swap the values
+        }
+
+        console.log("Showing messages from "+startMessage+" to "+endMessage);
+
+
+        if(loadedChatStart != undefined) //if we have loaded chat messages before
+            if(endMessage<loadedChatStart) endMessage = loadedChatStart-1;
+        if(loadedChatEnd != undefined)
+            if(startMessage>loadedChatEnd) startMessage = loadedChatEnd+1;
+
+        if(loadedChatStart == undefined) loadedChatStart = 1000000;
+        if(loadedChatEnd == undefined) loadedChatEnd = -1;
+
+        var id = "";
+
+        console.log(startMessage, endMessage, loadedChatStart, loadedChatEnd);
+
+        for(var i=startMessage; i<=endMessage && i<data.length; i++){
+            if(i>= loadedChatStart && i<= loadedChatEnd) continue;
+
+            //console.log("Appending with index "+i+ " and timestamp "+data[i].timestamp+" which is "+new Date(data[i].timestamp));
+
+
+            if(getUsername(data[i]) == user) clas = "chatMessageUser";
+            else clas = "chatMessageOther";
+
+            var tag = '<span class="'+clas+'">' + data[i].body + '</span>';
+
+            if(i < loadedChatStart) messagesToPrepend.push(tag);
+            else messagesToAppend.push(tag);
+        }
+
+        loadedChatStart = Math.min(startMessage, loadedChatStart);
+        loadedChatEnd = Math.max(Math.min(endMessage-1, data.length-1), loadedChatEnd);
+
+        for(var i=messagesToPrepend.length-1; i>=0; i--){
+            $(".chat").prepend(messagesToPrepend[i]);
+        }
+
+        for(var i=0; i<messagesToAppend.length; i++){
+            $(".chat").append(messagesToAppend[i]);
         }
     }
 }

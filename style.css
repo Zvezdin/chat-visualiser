@@ -50,3 +50,41 @@
 .fileSelect {
     background: #5596fc;
 }
+
+.chat {
+    max-height: 50vh;
+    width: 50vw;
+    overflow-y: scroll;
+    position: relative;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column-reverse;
+}
+
+.chatMessageOther, .chatMessageUser {
+    font-family: "Verdana";
+
+    margin-right: 10px;
+
+    margin-top: 5px;
+    margin-bottom: 5px;
+
+    border-radius: 15px;
+    padding-top: 10px;
+    padding-bottom: 8px;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.chatMessageOther {
+    align-self: flex-start;
+    background-color: #dee5ef;
+    color: #000000;
+}
+
+.chatMessageUser {
+    align-self: flex-end;
+
+    background-color: #5596fc;
+    color: #FFFFFF;
+}
