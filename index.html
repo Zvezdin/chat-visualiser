@@ -24,6 +24,7 @@
             <button class="chartButton" onclick="JavaScript:messageAuthorShare()">Author share</button>
             <button class="chartButton" onclick="JavaScript:mostCommonMessages()">Most common messages</button>
             <button class="chartButton" onclick="JavaScript:activeHours()">Active hours</button>
+            <button class="chartButton" onClick="JavaScript:showChat(1492635600000, 0, 30)">Show chat</button>
         </div>
 
         <div class="fileContainer">
@@ -31,6 +32,11 @@
                 <input class="fileSelect" type="file" name="data" accept="text/json" id="dataUpload">
                 <input class="fileSubmit" type="submit">
             </form>
+        </div>
+
+        <div>
+            <ul id="#chat">
+            </ul>
         </div>
     </body>
 </html>

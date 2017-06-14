@@ -380,3 +380,21 @@ function activeHours(){
     hideAll();
     $('#line_chart').show();
 }
+
+var loadedChatStart;
+var loadedChatEnd;
+
+function showChat(timestamp, index, amount){
+    if(timestamp != undefined){
+        for(var i=0; i<data.length-1; i++){
+            if(data[i].timestamp >= timestamp && data[i+1].timestamp < timestamp) index = i;
+        }
+    }
+
+    if(index!= undefined && index>=0 && index < data.length){
+        for(var i=index; i<index+amount && i<data.length; i++){
+            console.log("Appending with index "+i+ " and timestamp "+data[i].timestamp+" which is "+new Date(data[i].timestamp));
+            $("ul").append("<li>" + data[i].body + "</li>") ;
+        }
+    }
+}
