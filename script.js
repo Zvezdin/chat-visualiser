@@ -96,6 +96,17 @@ function parseData(text){
 
 function onDataParsed(){
     messageAuthorShare();
+
+    $(".timeSlider").attr("min", data[data.length-1].timestamp);
+    $(".timeSlider").attr("max", data[0].timestamp);
+
+    $(".timeSlider").change( 
+        function(event, k) {
+            console.log("Stopped ", event.currentTarget.value);
+
+            showChat(event.currentTarget.value, undefined, 20);
+        }
+    );
 }
 
 var chartPoints = 100;
@@ -430,16 +441,26 @@ function showChat(timestamp, index, amount){
         if(startMessage > endMessage){
             startMessage = [endMessage, endMessage=startMessage][0]; //swap the values
         }
-
-        console.log("Showing messages from "+startMessage+" to "+endMessage);
-
+        
+        if(endMessage >= data.length){
+            startMessage -= endMessage - data.length;
+            endMessage -= endMessage - data.length;
+        }
+        
+        console.log("Showing messages from "+startMessage+" to "+endMessage+" out of "+data.length);
 
         if(loadedChatStart != undefined) //if we have loaded chat messages before
-            if(endMessage<loadedChatStart) endMessage = loadedChatStart-1;
+            if(endMessage<loadedChatStart-1 && startMessage<loadedChatStart-1){
+                //endMessage = loadedChatStart-1;
+                clearChat();
+            }
         if(loadedChatEnd != undefined)
-            if(startMessage>loadedChatEnd) startMessage = loadedChatEnd+1;
+            if(startMessage>loadedChatEnd+1 && endMessage>loadedChatEnd+1){
+                //startMessage = loadedChatEnd+1;
+                clearChat();
+            }
 
-        if(loadedChatStart == undefined) loadedChatStart = 1000000;
+        if(loadedChatStart == undefined) loadedChatStart = 1000000000;
         if(loadedChatEnd == undefined) loadedChatEnd = -1;
 
         var id = "";
@@ -471,5 +492,12 @@ function showChat(timestamp, index, amount){
         for(var i=0; i<messagesToAppend.length; i++){
             $(".chat").append(messagesToAppend[i]);
         }
+    }
+
+    function clearChat(){
+        loadedChatEnd = undefined;
+        loadedChatStart = undefined;
+
+        $(".chat").empty();
     }
 }
