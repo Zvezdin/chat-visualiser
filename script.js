@@ -78,8 +78,11 @@ function startUpload(){
 }
 
 function onUploadComplete(text){
-
-    window.localStorage.setItem("file", text.target.result);
+    try{
+        window.localStorage.setItem("file", text.target.result);
+    } catch(e){
+        console.error(e);
+    }
 
     parseData(text.target.result);
 }
