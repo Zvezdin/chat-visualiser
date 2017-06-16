@@ -132,10 +132,14 @@ function getChatMembers(){
     console.log("Got nicknames!", chatMembers);
 }
 
-function getUsername(message){
+function getNickname(message){
     if(message.author != undefined){
         if(chatMembers[message.author.substr(5)] != undefined) return chatMembers[message.author.substr(5)];
     } else if(chatMembers[message.substr(5)] != undefined) return chatMembers[message.substr(5)];
+    return message.author.substr(5);
+}
+
+function getUserId(message){
     return message.author.substr(5);
 }
 
@@ -476,17 +480,17 @@ function showChat(timestamp, index, amount){
             //console.log("Appending with index "+i+ " and timestamp "+data[i].timestamp+" which is "+new Date(data[i].timestamp));
 
 
-            if(getUsername(data[i]) == user) clas = "chatMessageUser";
-            else clas = "chatMessageOther";
+            if(getUserId(data[i]) == user) clas = "messageContainerRight";
+            else clas = "messageContainerLeft";
 
-            var tag = '<span class="'+clas+'">' + data[i].body + '</span>';
+            var tag = '<div class="'+clas+'"><span class="message">' + data[i].body + '</span></div>';
 
             if(i < loadedChatStart) messagesToPrepend.push(tag);
             else messagesToAppend.push(tag);
         }
 
         loadedChatStart = Math.min(startMessage, loadedChatStart);
-        loadedChatEnd = Math.max(Math.min(endMessage-1, data.length-1), loadedChatEnd);
+        loadedChatEnd = Math.max(Math.min(endMessage, data.length-1), loadedChatEnd);
 
         for(var i=messagesToPrepend.length-1; i>=0; i--){
             $(".chat").prepend(messagesToPrepend[i]);
@@ -494,6 +498,7 @@ function showChat(timestamp, index, amount){
 
         for(var i=0; i<messagesToAppend.length; i++){
             $(".chat").append(messagesToAppend[i]);
+            console.log("Appending "+messagesToAppend[i]);
         }
     }
 

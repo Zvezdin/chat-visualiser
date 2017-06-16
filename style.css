@@ -66,7 +66,7 @@
     flex-direction: column-reverse;
 }
 
-.chatMessageOther, .chatMessageUser {
+.message {
     font-family: "Verdana";
 
     margin-right: 10px;
@@ -81,15 +81,23 @@
     padding-right: 10px;
 }
 
-.chatMessageOther {
+.messageContainerLeft {
     align-self: flex-start;
+}
+
+.messageContainerRight {
+    align-self: flex-end;
+}
+
+.messageContainerLeft, .messageContainerRight {
+}
+
+.messageContainerLeft > .message {
     background-color: #dee5ef;
     color: #000000;
 }
 
-.chatMessageUser {
-    align-self: flex-end;
-
+.messageContainerRight > .message {
     background-color: #5596fc;
     color: #FFFFFF;
 }
