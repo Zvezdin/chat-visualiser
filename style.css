@@ -68,7 +68,19 @@
 
 .message {
     font-family: "Verdana";
+    margin: inherit;
+    padding: inherit;
+}
 
+.messageContainerLeft {
+    align-self: flex-start;
+}
+
+.messageContainerRight {
+    align-self: flex-end;
+}
+
+.messageContainerLeft, .messageContainerRight {
     margin-right: 10px;
 
     margin-top: 5px;
@@ -82,22 +94,12 @@
 }
 
 .messageContainerLeft {
-    align-self: flex-start;
-}
-
-.messageContainerRight {
-    align-self: flex-end;
-}
-
-.messageContainerLeft, .messageContainerRight {
-}
-
-.messageContainerLeft > .message {
     background-color: #dee5ef;
     color: #000000;
 }
 
-.messageContainerRight > .message {
+.messageContainerRight {
+        
     background-color: #5596fc;
     color: #FFFFFF;
 }

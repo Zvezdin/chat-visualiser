@@ -483,7 +483,7 @@ function showChat(timestamp, index, amount){
             if(getUserId(data[i]) == user) clas = "messageContainerRight";
             else clas = "messageContainerLeft";
 
-            var tag = '<div class="'+clas+'"><span class="message">' + data[i].body + '</span></div>';
+            var tag = '<div class="container '+clas+'"><span class="message">' + data[i].body + '</span></div>';
 
             if(i < loadedChatStart) messagesToPrepend.push(tag);
             else messagesToAppend.push(tag);
