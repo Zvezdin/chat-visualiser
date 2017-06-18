@@ -432,7 +432,6 @@ function activeHours(){
 
 var loadedChatStart;
 var loadedChatEnd;
-var cont
 
 function showChat(timestamp, index, amount){
     if(timestamp != undefined){
@@ -471,8 +470,6 @@ function showChat(timestamp, index, amount){
         if(loadedChatStart == undefined) loadedChatStart = 1000000000;
         if(loadedChatEnd == undefined) loadedChatEnd = -1;
 
-        var id = "";
-
         console.log(startMessage, endMessage, loadedChatStart, loadedChatEnd);
 
         for(var i=startMessage; i<=endMessage && i<data.length; i++){
@@ -482,14 +479,14 @@ function showChat(timestamp, index, amount){
 
             if(getUserId(data[i]) == user) {
                 clas = "message_r";
-                cont = "messagecont_r"
+                cont = "messagecont_r";
             } else {
 
                 clas = "message_l";
-                cont = "messagecont_l"
+                cont = "messagecont_l";
             }
 
-            var tag = '<div class="container '+cont+'"><span class="'+clas+'">' + data[i].body + '</span></div>';
+            var tag = '<div class="container '+cont+'"><p class="'+clas+'">' + data[i].body + '</p></div>';
 
             if(i < loadedChatStart) messagesToPrepend.push(tag);
             else messagesToAppend.push(tag);

@@ -103,7 +103,7 @@
     font-family: "Verdana";
 }
 
-.message_l, .message_r, .container {
+.message_l, .message_r {
     padding: 10px;
 }
 
@@ -114,6 +114,6 @@
     border-radius: 15px;
     margin-right: 10px;
 
-    margin-top: 5px;
-    margin-bottom: 5px;
+    margin-top: 3px;
+    margin-bottom: 3px;
 }
