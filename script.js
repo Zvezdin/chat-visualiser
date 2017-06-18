@@ -432,6 +432,7 @@ function activeHours(){
 
 var loadedChatStart;
 var loadedChatEnd;
+var cont
 
 function showChat(timestamp, index, amount){
     if(timestamp != undefined){
@@ -479,11 +480,16 @@ function showChat(timestamp, index, amount){
 
             //console.log("Appending with index "+i+ " and timestamp "+data[i].timestamp+" which is "+new Date(data[i].timestamp));
 
+            if(getUserId(data[i]) == user) {
+                clas = "message_r";
+                cont = "messagecont_r"
+            } else {
 
-            if(getUserId(data[i]) == user) clas = "messageContainerRight";
-            else clas = "messageContainerLeft";
+                clas = "message_l";
+                cont = "messagecont_l"
+            }
 
-            var tag = '<div class="'+clas+'"><span class="message">' + data[i].body + '</span></div>';
+            var tag = '<div class="container '+cont+'"><span class="'+clas+'">' + data[i].body + '</span></div>';
 
             if(i < loadedChatStart) messagesToPrepend.push(tag);
             else messagesToAppend.push(tag);

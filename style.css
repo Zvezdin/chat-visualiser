@@ -66,38 +66,22 @@
     flex-direction: column-reverse;
 }
 
-.message {
-    font-family: "Verdana";
-
-    margin-right: 10px;
-
-    margin-top: 5px;
-    margin-bottom: 5px;
-
-    border-radius: 15px;
-    padding-top: 10px;
-    padding-bottom: 8px;
-    padding-left: 10px;
-    padding-right: 10px;
-}
-
-.messageContainerLeft {
+.messagecont_l {
     align-self: flex-start;
 }
 
-.messageContainerRight {
+.messagecont_r {
     align-self: flex-end;
 }
 
-.messageContainerLeft, .messageContainerRight {
-}
 
-.messageContainerLeft > .message {
+.message_l {
     background-color: #dee5ef;
     color: #000000;
 }
 
-.messageContainerRight > .message {
+.message_r {
+        
     background-color: #5596fc;
     color: #FFFFFF;
 }
@@ -117,4 +101,19 @@
 .label {
     text-align: center;
     font-family: "Verdana";
+}
+
+.message_l, .message_r, .container {
+    padding: 10px;
+}
+
+.message_l, .message_r{
+    
+    font-family: "Verdana";
+    
+    border-radius: 15px;
+    margin-right: 10px;
+
+    margin-top: 5px;
+    margin-bottom: 5px;
 }
