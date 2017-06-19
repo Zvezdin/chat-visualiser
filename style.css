@@ -101,6 +101,17 @@
 .label {
     text-align: center;
     font-family: "Verdana";
+    margin-bottom: 10px;
+}
+
+.sublabel {
+    text-align: center;
+    font-family: "Verdana";
+
+    font-size: 1.5em;
+    color: #3884ff;
+
+    margin-bottom: 20px;
 }
 
 .message_l, .message_r {

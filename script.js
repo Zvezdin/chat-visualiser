@@ -103,13 +103,26 @@ function onDataParsed(){
     $(".timeSlider").attr("min", data[data.length-1].timestamp);
     $(".timeSlider").attr("max", data[0].timestamp);
 
-    $(".timeSlider").change( 
-        function(event, k) {
-            console.log("Stopped ", event.currentTarget.value);
+    $(".chatSlider").attr("min", 1);
+    $(".chatSlider").attr("max", data.length);
 
-            showChat(event.currentTarget.value, undefined, 20);
+    $(".timeSlider").change( 
+        function(event) {
+            console.log("Stopped ", event.currentTarget.value, new Date(Number(event.currentTarget.value)));
+
+            $("#timeLabel").text(new Date(Number(event.currentTarget.value)).toLocaleString());
+
+            if(event.originalEvent) showChat(event.currentTarget.value, undefined, chatChunkSize);
         }
     );
+
+    $(".chatSlider").change(
+        function(event){
+            console.log("Setting the chat to ", event.currentTarget.value);
+
+            $("#chatLabel").text(event.currentTarget.value+ ' / ' + data.length);
+            if(event.originalEvent) showChat(undefined, Number(event.currentTarget.value)-1, chatChunkSize);
+    });
 }
 
 var chartPoints = 100;
@@ -433,6 +446,8 @@ function activeHours(){
 var loadedChatStart;
 var loadedChatEnd;
 
+var chatChunkSize = 20;
+
 function showChat(timestamp, index, amount){
     if(timestamp != undefined){
         for(var i=0; i<data.length-1; i++){
@@ -441,6 +456,9 @@ function showChat(timestamp, index, amount){
     }
 
     if(index!= undefined && index>=0 && index < data.length){
+        $(".timeSlider").val(data[index].timestamp).change();
+        $(".chatSlider").val(index+1).change();
+
         var startMessage = index, endMessage = index + amount;
 
         var messagesToAppend = [], messagesToPrepend = [];
