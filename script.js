@@ -486,7 +486,7 @@ function showChat(timestamp, index, amount){
                 cont = "messagecont_l";
             }
 
-            var tag = '<div class="container '+cont+'"><p class="'+clas+'">' + data[i].body + '</p></div>';
+            var tag = '<div class="container '+cont+' tooltipContainer"><p class="'+clas+'">' + data[i].body + '</p><div class="tooltiptext">'+new Date(data[i].timestamp)+'<div></div>';
 
             if(i < loadedChatStart) messagesToPrepend.push(tag);
             else messagesToAppend.push(tag);
