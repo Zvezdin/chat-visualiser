@@ -76,8 +76,12 @@ var saveAllMessages = function(filename, thread_type, thread_id, startTime, endT
     var messageHandler = function(response){
         if(debug) console.log(response);
 
-        if(response.payload == null || response.payload == undefined){
+        if(response.payload == null || response.payload == undefined || response.payload.actions == undefined){
             console.error("Couldn't get any data!");
+
+            if(response.error != undefined) console.error("Error code "+response.error+" with summary '"+response.errorSummary+"' and description '"+response.errorDescription+"'");
+
+            if(debug) console.log("Response:", response.payload);
             return;
         }
 
