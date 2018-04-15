@@ -2,69 +2,107 @@ const querystring = require('querystring');
 const http = require('https');
 const fs = require("fs");
 const ArgumentParser = require("argparse").ArgumentParser;
+const assert = require('assert').strict;
 
 var authenticationData = {};
 
 var debug = false;
 
-var getMessages = function(thread_type, thread_id, offset, startTime, endTime, limit, callback){
+var getMessages = function(thread_id, offset, startTime, endTime, limit){
+	return new Promise(function(resolve, reject){
+		var dataObject = {
+			'fb_dtsg': authenticationData.fb_dtsg,
+			'batch_name': 'MessengerGraphQLThreadFetcher',
+		};
+		
+		let queryObject = {
+			"o0":{
+			"doc_id":"1763598403704584",
+			"query_params":{
+					"id":thread_id,
+					"message_limit":limit,
+					"load_messages":true,
+					"load_read_receipts":true,
+					"before":startTime
+				}
+			}
+		};
+		
+		dataObject['queries'] = JSON.stringify(queryObject);
 
-	var dataObject = {
-		'__a':'1',
-		'fb_dtsg': authenticationData.fb_dtsg,
-	};
+		var data = querystring.stringify(dataObject);
 
-	dataObject['messages['+thread_type+']['+thread_id+'][timestamp]'] = startTime;
-	dataObject['messages['+thread_type+']['+thread_id+'][limit]'] = limit;
+		var options = {
+			host: 'www.messenger.com',
+			port: 443,
+			path: '/api/graphqlbatch/',
+			method: 'POST',
+			headers: {
+				'authority': 'www.messenger.com',
+				'method': 'POST',
+				'path': '/api/graphqlbatch/',
+				'scheme': 'https',
+				'accept': '*/*',
+				'accept-encoding': 'utf16',
+				'accept-language': 'en-US,en;q=0.8',
+				'content-type': 'application/x-www-form-urlencoded',
+				'content-length': Buffer.byteLength(data),
+				'cookie': authenticationData.cookie,
+				'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.86 Safari/537.36',
+			},
+		};
 
-	var data = querystring.stringify(dataObject);
+		var response = {};
+		var responseString = "";
 
-	var options = {
-		host: 'www.messenger.com',
-		port: 443,
-		path: '/ajax/mercury/thread_info.php?dpr=1',
-		method: 'POST',
-		headers: {
-			'authority': 'www.messenger.com',
-			'method': 'POST',
-			'path': '/ajax/mercury/thread_info.php?dpr=1',
-			'scheme': 'https',
-			'accept': '*/*',
-			'accept-encoding': 'utf16',
-			'accept-language': 'en-US,en;q=0.8',
-			'Content-Type': 'application/x-www-form-urlencoded',
-			'Content-Length': Buffer.byteLength(data),
-			'Cookie': authenticationData.cookie,
-			'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.86 Safari/537.36',
-		},
-	};
+		var req = http.request(options, function(res) {
 
-	var response = {};
-	var responseString = "";
+			res.on('data', function (chunk) {
+				if(debug) console.log("Got a chunk!");
+				responseString += chunk;
+			});
 
-	var req = http.request(options, function(res) {
+			res.on('end', function() {
+				//the response is two JSON objects. Make it an array so it gets parsed
 
-		res.on('data', function (chunk) {
-			if(debug) console.log("Got a chunk!");
-			responseString += chunk;
+				try{
+					let res = JSON.parse(responseString);
+				} catch(e) {
+					let msgParts = e.message.split(' ');
+					let pos = +msgParts[msgParts.length-1];
+
+					String.prototype.splice = function(idx, rem, str) {
+						return this.slice(0, idx) + str + this.slice(idx + Math.abs(rem));
+					};
+
+					//insert a comma between these objects
+					//and make it an array of objects
+					responseString = '[' + responseString.splice(pos, 0, ",") + ']';
+
+					let parsed = JSON.parse(responseString);
+
+					metadata = parsed[1];
+					
+					res = parsed[0];
+
+					assert(metadata['error_results'] == 0);
+					assert(metadata['skipped_results'] == 0);
+				}
+
+				resolve(res);
+			});
 		});
 
-		res.on('end', function() {
-			responseString = responseString.replace("for (;;);", "response = ");
-			eval(responseString);
-			callback(response);
+		req.on('error', (e) => {
+			reject(e);
 		});
-	});
 
-	req.on('error', (e) => {
-		console.error(e);
+		req.write(data);
+		req.end();
 	});
-
-	req.write(data);
-	req.end();
 }
 
-var saveAllMessages = function(filename, thread_type, thread_id, startTime, endTime){
+var saveAllMessages = async function(filename, thread_type, thread_id, startTime, endTime){
 	if(startTime == undefined) startTime = new Date().getTime();
 	if(endTime == undefined) endTime = 0;
 
@@ -74,26 +112,33 @@ var saveAllMessages = function(filename, thread_type, thread_id, startTime, endT
 
 	var actions = [];
 
-	var messageHandler = function(response){
+	let lastEnd = startTime;
+
+	while(true){
+		let response = await getMessages(thread_id, offset, lastEnd, endTime, limit);
+
 		if(debug) console.log(response);
 
-		if(response.payload == null || response.payload == undefined || response.payload.actions == undefined){
-			console.error("Couldn't get any data!");
+		let thread = response.o0.data.message_thread;
 
-			if(response.error != undefined) console.error("Error code "+response.error+" with summary '"+response.errorSummary+"' and description '"+response.errorDescription+"'");
+		assert(thread.thread_key.thread_fbid == null || thread.thread_key.other_user_id == null);
+		assert(thread.thread_key.other_user_id === thread_id || thread.thread_key.thread_fbid === thread_id);
 
-			if(debug) console.log("Response:", response.payload);
-			return;
+		let messages = thread.messages.nodes;
+
+		//if this is our first message series, push the most recent message, which we usually ignore
+		if(actions.length == 0){
+			actions.push(messages[messages.length-1]);
+		}
+		
+		//reverse iteration (new -> old), but skip the newest
+		for(i=messages.length-2; i>=0; i--){
+			actions.push(messages[i]);
+
+			if(debug && typeof messages[i].message != 'undefined') console.log(new Date(+messages[i].timestamp_precise) + " \t" + messages[i].message.text);
 		}
 
-		if(actions.length == 0) actions.push(response.payload.actions[response.payload.actions.length-1]);
-
-		for(i=response.payload.actions.length-2; i>=0; i--){
-			actions.push(response.payload.actions[i]);
-			if(debug) console.log(new Date(response.payload.actions[i].timestamp) + " \t" + response.payload.actions[i].body);
-		}
-
-		if(actions[actions.length-1].timestamp < endTime || typeof response.payload.end_of_history != "undefined"){
+		if(actions[actions.length-1].timestamp_precise < endTime || messages.length < limit){
 
 			//save the user ID as well
 			var user = authenticationData.cookie.substr(authenticationData.cookie.indexOf("c_user") + 7, 15);
@@ -113,10 +158,8 @@ var saveAllMessages = function(filename, thread_type, thread_id, startTime, endT
 
 		if(debug) console.log("LOADING OTHER MESSAGES");
 
-		getMessages(thread_type, thread_id, offset, actions[actions.length-1].timestamp, 0, limit, messageHandler);
+		lastEnd = actions[actions.length-1].timestamp_precise;
 	}
-
-	getMessages(thread_type, thread_id, offset, startTime, endTime, limit, messageHandler);
 };
 
 var id, type = "user_ids", filename;
@@ -157,7 +200,16 @@ function main() {
 			defaultValue: false,
 			action: "storeTrue",
 		},
-	)
+	);
+
+	parser.addArgument(
+		['--getone'],
+		{
+			help: 'Loads only one batch of messages',
+			defaultValue: false,
+			action: "storeTrue",
+		},
+	);
 
 	parser.addArgument(
 		['--filename'],
@@ -178,7 +230,7 @@ function main() {
 
 	let filename;
 
-	if(filename == undefined) filename = "downloaded_data/history_"+type+"_"+id+".json";
+	if(filename == undefined) filename = "downloaded_data/history_"+type+"_"+args.id+".json";
 
 	authenticationData = JSON.parse(fs.readFileSync('data.json'));
 
@@ -186,6 +238,8 @@ function main() {
 		console.error("Error: No authentication data! Please provide your cookie and fb_dtsg in data.json (see example_data.json for example)");
 		execute = false;
 	}
+
+	debug = args.debug;
 
 	saveAllMessages(filename, type, args.id);
 
