@@ -102,7 +102,7 @@ var getMessages = function(thread_id, offset, startTime, endTime, limit){
 	});
 }
 
-var saveAllMessages = async function(filename, thread_type, thread_id, startTime, endTime){
+var saveAllMessages = async function(filename, thread_id, startTime, endTime){
 	if(startTime == undefined) startTime = new Date().getTime();
 	if(endTime == undefined) endTime = 0;
 
@@ -184,16 +184,6 @@ function main() {
 	);
 
 	parser.addArgument(
-		[ '--type' ],
-		{
-			help: 'Download blockchain data with for a block range of given start and end block number',
-			choices: ["user", "group"],
-			defaultValue: "user",
-			type: String,
-		},
-	);
-
-	parser.addArgument(
 		['--debug'],
 		{
 			help: 'Shows debug log',
@@ -222,15 +212,10 @@ function main() {
 
 
 	var args = parser.parseArgs();
-	
-	let type;
-
-	if(args.type == "user") type = "user_ids";
-	else type = "thread_fbids";
 
 	let filename;
 
-	if(filename == undefined) filename = "downloaded_data/history_"+type+"_"+args.id+".json";
+	if(filename == undefined) filename = "downloaded_data/history_"+args.id+".json";
 
 	authenticationData = JSON.parse(fs.readFileSync('data.json'));
 
@@ -241,7 +226,7 @@ function main() {
 
 	debug = args.debug;
 
-	saveAllMessages(filename, type, args.id);
+	saveAllMessages(filename, args.id);
 
 }
 
