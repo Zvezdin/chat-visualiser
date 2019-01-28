@@ -89,11 +89,22 @@ function onUploadComplete(text){
 
 function parseData(text){
 	var obj = JSON.parse(text);
-	data = obj.actions;
-	user = obj.user;
+	data = obj.messages;
+	user = obj.participants[0].name; //TODO: We don't know which participant is the user
+	chatMembers = {}
+
+	for(var i=0; i<data.length; i++) { //workaround and parse the message content through utf8 because JavaScript.
+		if(typeof data[i].content != "undefined")
+			data[i].content = utf8.decode(data[i].content);
+	}
+
+	for(var i=0; i<obj.participants.length; i++) {
+		var name = obj.participants[i];
+		chatMembers[name] = name;
+	}
 
 	for(let i=0; i<data.length; i++) {
-		data[i].timestamp_precise = +data[i].timestamp_precise;
+		data[i].timestamp_ms = +data[i].timestamp_ms;
 	}
 
 	console.log(data, user);
@@ -104,8 +115,8 @@ function parseData(text){
 function onDataParsed(){
 	messageAuthorShare();
 
-	$(".timeSlider").attr("min", data[data.length-1].timestamp_precise);
-	$(".timeSlider").attr("max", data[0].timestamp_precise);
+	$(".timeSlider").attr("min", data[data.length-1].timestamp_ms);
+	$(".timeSlider").attr("max", data[0].timestamp_ms);
 
 	$(".chatSlider").attr("min", 1);
 	$(".chatSlider").attr("max", data.length);
@@ -136,28 +147,9 @@ function updateChart(config, chart){
 	chart.update();
 }
 
-function getChatMembers(){
-	chatMembers = {};
-	for(var i=0; i<data.length; i++){
-		if(data[i].__typename == "GenericAdminTextMessage"){
-			if(data[i].extensible_message_admin_text_type == "CHANGE_THREAD_NICKNAME"){
-				if(chatMembers[data[i].extensible_message_admin_text.participant_id] != undefined) continue;
-				chatMembers[data[i].extensible_message_admin_text.participant_id] = data[i].extensible_message_admin_text.nickname;
-			}
-		}
-	}
-	console.log("Got nicknames!", chatMembers);
-}
-
-function getNickname(message){
-	if(message.message_sender.id != undefined){
-		if(chatMembers[message.message_sender.id] != undefined) return chatMembers[message.message_sender.id];
-	} else if(chatMembers[message] != undefined) return chatMembers[message];
-	return message.message_sender.id;
-}
 
 function getUserId(message){
-	return message.message_sender.id;
+	return message.sender_name;
 }
 
 function hideAll(){
@@ -170,20 +162,20 @@ function absoluteChatActivity(){
 
 	//( data.length > chartPoints ? Math.floor(data.length / chartPoints)
 
-	var interval = (data[0].timestamp_precise - data[data.length-1].timestamp_precise) / chartPoints;
+	var interval = (data[0].timestamp_ms - data[data.length-1].timestamp_ms) / chartPoints;
 	var previousTimestamp = 0;
 
 
 	console.log("Interval is "+interval);
 
 	for(i = data.length-1; i>=0; i-= 1 ){
-		if((data.length <= chartPoints) || (data[i].timestamp_precise > previousTimestamp + interval)) {
-			previousTimestamp = data[i].timestamp_precise;
+		if((data.length <= chartPoints) || (data[i].timestamp_ms > previousTimestamp + interval)) {
+			previousTimestamp = data[i].timestamp_ms;
 			chartData.push({
-				x: data[i].timestamp_precise,
+				x: data[i].timestamp_ms,
 				y: data.length-i,
 			});
-			console.log("Adding point "+data[i].timestamp_precise);
+			console.log("Adding point "+data[i].timestamp_ms);
 		}
 	}
 
@@ -224,7 +216,7 @@ function relativeChatActivity(){
 
 	//( data.length > chartPoints ? Math.floor(data.length / chartPoints)
 
-	var interval = (data[0].timestamp_precise - data[data.length-1].timestamp_precise) / chartPoints;
+	var interval = (data[0].timestamp_ms - data[data.length-1].timestamp_ms) / chartPoints;
 	var previousTimestamp = 0;
 
 	var accumulatedMessages = 0;
@@ -233,11 +225,11 @@ function relativeChatActivity(){
 
 	for(i = data.length-1; i>=0; i-= 1 ){
 		accumulatedMessages += 1;
-		if((data.length <= chartPoints) || (data[i].timestamp_precise > previousTimestamp + interval)) {
-			console.log("Adding point "+data[i].timestamp_precise);
-			previousTimestamp = data[i].timestamp_precise;
+		if((data.length <= chartPoints) || (data[i].timestamp_ms > previousTimestamp + interval)) {
+			console.log("Adding point "+data[i].timestamp_ms);
+			previousTimestamp = data[i].timestamp_ms;
 			chartData.push({
-				x:data[i].timestamp_precise,
+				x:data[i].timestamp_ms,
 				y: accumulatedMessages,
 			});
 
@@ -282,12 +274,10 @@ function messageAuthorShare(){
 
 	var chartData = [];
 
-	getChatMembers();
-
 	for(i = data.length-1; i>=0; i-= 1 ){
-		if(authorData.hasOwnProperty(data[i].message_sender.id)){
-			authorData[data[i].message_sender.id]++;
-		} else authorData[data[i].message_sender.id] = 1;
+		if(authorData.hasOwnProperty(data[i].sender_name)){
+			authorData[data[i].sender_name]++;
+		} else authorData[data[i].sender_name] = 1;
 	}
 
 	var keys = [];
@@ -348,10 +338,10 @@ function mostCommonMessages(){
 	var messageCount = {};
 
 	for(var i=0; i<data.length; i++){
-		if(typeof data[i].message != "undefined" && data[i].message.text != ""){
-			if(messageCount[data[i].message.text.toLowerCase()] == undefined) messageCount[data[i].message.text.toLowerCase()] = 1;
-			else messageCount[data[i].message.text.toLowerCase()]++;
-		}
+		console.assert(typeof data[i].content != "undefined");
+		console.log(data[i]);
+		if(messageCount[data[i].content.toLowerCase()] == undefined) messageCount[data[i].content.toLowerCase()] = 1;
+		else messageCount[data[i].content.toLowerCase()]++;
 	}
 
 	for(var k in messageCount){
@@ -410,7 +400,7 @@ function activeHours(){
 
 	
 	for(var i=0; i<data.length; i++){
-		var hour = Math.floor( (data[i].timestamp_precise % 86400000) / (1000*60*60) );
+		var hour = Math.floor( (data[i].timestamp_ms % 86400000) / (1000*60*60) );
 		chartData[hour].y++;
 	}
 
@@ -462,12 +452,12 @@ var chatChunkSize = 20;
 function showChat(timestamp, index, amount){
 	if(timestamp != undefined){
 		for(var i=0; i<data.length-1; i++){
-			if(data[i].timestamp_precise >= timestamp && data[i+1].timestamp_precise < timestamp) index = i;
+			if(data[i].timestamp_ms >= timestamp && data[i+1].timestamp_ms < timestamp) index = i;
 		}
 	}
 
 	if(index!= undefined && index>=0 && index < data.length){
-		$(".timeSlider").val(data[index].timestamp_precise).change();
+		$(".timeSlider").val(data[index].timestamp_ms).change();
 		$(".chatSlider").val(index+1).change();
 
 		var startMessage = index, endMessage = index + amount;
@@ -504,9 +494,10 @@ function showChat(timestamp, index, amount){
 		for(var i=startMessage; i<=endMessage && i<data.length; i++){
 			if(i>= loadedChatStart && i<= loadedChatEnd) continue;
 
-			//console.log("Appending with index "+i+ " and timestamp "+data[i].timestamp_precise+" which is "+new Date(data[i].timestamp_precise));
+			//console.log("Appending with index "+i+ " and timestamp "+data[i].timestamp_ms+" which is "+new Date(data[i].timestamp_ms));
 
-			let id = getUserId(data[i]);
+			let id = data[i].sender_name;
+
 
 			if(id == user) {
 				clas = "message_r";
@@ -519,13 +510,11 @@ function showChat(timestamp, index, amount){
 
 			let text;
 
-			if(typeof data[i].message != 'undefined') {
-				text = data[i].message.text;
-			} else {
-				text = data[i].snippet;
-			}
+			console.assert(typeof data[i].content != 'undefined')
 
-			var tag = '<div class="container '+cont+' tooltipContainer"><p class="'+clas+'">' + text + '</p><div class="tooltiptext">'+new Date(+data[i].timestamp_precise)+'<div></div>';
+			text = data[i].content;
+
+			var tag = '<div class="container '+cont+' tooltipContainer"><p class="'+clas+'">' + text + '</p><div class="tooltiptext">'+new Date(+data[i].timestamp_ms)+'<div></div>';
 
 			if(i < loadedChatStart) messagesToPrepend.push(tag);
 			else messagesToAppend.push(tag);
