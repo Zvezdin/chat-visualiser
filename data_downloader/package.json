@@ -5,7 +5,7 @@
   "main": "\u001b[C\u001b[D\u001b[Cchart_downloader.js",
   "dependencies": {
     "argparse": "^1.0.10",
-    "chart.js": "2.6.0",
+    "chart.js": "2.9.4",
     "jquery": "^3.4.0",
     "js-priority-queue": "^0.1.5",
     "moment": "^2.24.0",
