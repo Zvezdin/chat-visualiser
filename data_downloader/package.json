@@ -8,7 +8,7 @@
     "chart.js": "2.6.0",
     "jquery": "^3.4.0",
     "js-priority-queue": "^0.1.5",
-    "moment": "^2.24.0",
+    "moment": "^2.29.4",
     "utf8": "^3.0.0"
   },
   "devDependencies": {},
